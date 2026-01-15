@@ -7,58 +7,77 @@ public class ListaEventos implements CadastroEvento{
     private int contadorId = 1;  // atribuirá o id de cada evento
 
     public ListaEventos() {
-        this.eventos = new ArrayList<>();
+        this.listaEventos = new ArrayList<>();
     }
 
     @Override
-    public void adicionarEvento(Evento evento){
-        if (eventoExiste(evento.getNome(), evento.getData())) {
-            return;
+    public void adicionarEvento(Evento evento) throws ExcecaoDadosInvalidos {
+        evento.validadorBase();
+
+        if (dataJaReservada(evento.getData())) {
+            throw new ExcecaoDadosInvalidos("Já existe um evento cadastrado nesta data");
         }
 
-        evento.setIdEvento(contadorId++);
+        if (eventoExiste(evento.getNome(), evento.getData())) {
+            throw new ExcecaoDadosInvalidos("Este evento já foi cadastrado anteriormente.");
+        }
+
+        evento.setIdEvento(String.valueOf(contadorId++));
         listaEventos.add(evento);
     }
 
     @Override
     public boolean removerEvento(Evento evento) {
-        for (Evento e : listaEventos) {
-            if (e.getIdEvento().equals(evento.getIdEvento())) {
-                return listaEventos.remove(e);
-            }
-        }
-        return false;
+        // Remove pelo ID para garantir precisão
+        return listaEventos.removeIf(e -> e.getIdEvento().equals(evento.getIdEvento()));
     }
 
     @Override
-    public void atualizarEvento(Evento evento) {
-        for (int i = 0; i < eventos.size(); i++) {
-            if (listaEventos.get(i).getIdEvento().equals(evento.getIdEvento())) {
-                listaEventos.set(i, evento);
+    public void atualizarDadosEvento(Evento eventoAtualizado) {
+        for (int i = 0; i < listaEventos.size(); i++) {
+            Evento eventoExistente = listaEventos.get(i);
+
+            // 1. Localiza o evento original pelo ID
+            if (eventoExistente.getIdEvento().equals(eventoAtualizado.getIdEvento())) {
+                
+                // 2. Valida as regras básicas
+                eventoAtualizado.validadorBase();
+
+                // 3. Verifica conflito de data
+                // Se a data mudou, precisamos garantir que o novo dia não esteja ocupado
+                if (!eventoExistente.getData().equals(eventoAtualizado.getData())) {
+                    if (dataJaReservada(eventoAtualizado.getData())) {
+                        throw new ExcecaoDadosInvalidos("Não é possível alterar para esta data: o dia " 
+                                                        + eventoAtualizado.getData() + " já está ocupado.");
+                    }
+                }
+                // 4. Se passou nas validações, atualiza na lista
+                listaEventos.set(i, eventoAtualizado);
                 return;
             }
-        }
     }
-
+    // Caso o ID passado não exista na lista
+    throw new ExcecaoDadosInvalidos("Evento com ID " + eventoAtualizado.getIdEvento() + " não encontrado.");
+}
    @Override
-    public Evento buscarEvento(Evento evento) {
+   public Evento buscarEvento(Evento evento) {
         for (Evento e : listaEventos) {
-            if (e.getIdEvento().equals(evento.getIdEvento)) {
+            if (e.getIdEvento().equals(evento.getIdEvento())) {
                 return e;
             }
         }
         return null;
     }
 
+    
     @Override
-    public List<Evento> listarEventosPorData(LocalDate data){
-        List<Evento> eventosPorData = new ArrayList<>();
+    public Evento mostrarEventoPorData(LocalDate data) {
         for (Evento e : listaEventos) {
             if (e.getData().equals(data)) {
-                eventosPorData.add(e);
+                return e;
             }
         }
-        return eventosPorData;
+        return null;
     }
 
     @Override
@@ -86,7 +105,7 @@ public class ListaEventos implements CadastroEvento{
     
     @Override
     public List<Evento> listarEventos() {
-        return new ArrayList<>(ListaEventos); // evita exposição direta da lista
+        return new ArrayList<>(listaEventos); // evita exposição direta da lista
     }
 
     @Override
@@ -118,13 +137,33 @@ public class ListaEventos implements CadastroEvento{
     }
 
     @Override
+    public boolean eventoExiste(String nome, LocalDate data) {
+        for (Evento e : listaEventos) {
+            if (e.getNome().equalsIgnoreCase(nome) && e.getData().equals(data)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean eventoExiste(Evento evento) {
         return buscarEvento(evento) != null;
     }
 
+    private boolean dataJaReservada(LocalDate data) {
+        for (Evento e : listaEventos) {
+            if (e.getData().equals(data)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public int totalEventos() {
-        return eventos.size();
+        return listaEventos.size();
     }
 
 }
