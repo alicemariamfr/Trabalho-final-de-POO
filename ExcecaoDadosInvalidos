@@ -1,0 +1,5 @@
+public class ExcecaoDadosInvalidos extends RuntimeException{
+    public ExcecaoDadosInvalidos(String msg) {
+        super(msg);
+    }
+}
