@@ -3,6 +3,9 @@ import java.time.LocalTime;
 import java.time.Duration;
 
 public class Evento {
+    private static final LocalTime ABERTURA = LocalTime.of(10, 0);
+    private static final LocalTime FECHAMENTO = LocalTime.of(20, 0);
+
     private String idEvento;
     private String nome;
     private TipoEvento tipo;
@@ -13,6 +16,42 @@ public class Evento {
     private String descricao;
     private int numeroConvidados;
 
+    // 3. O VALIDADOR (Pode ficar antes dos construtores)
+    public void validadorBase() throws ExcecaoDadosInvalidos {
+        if (nome == null || nome.isBlank()) throw new ExcecaoDadosInvalidos("Nome Obrigatório.");
+        if (tipo == null) throw new ExcecaoDadosInvalidos("Tipo Obrigatório.");
+        if (data == null) throw new ExcecaoDadosInvalidos("Data Obrigatória.");
+        
+        if (data.isBefore(LocalDate.now())) {
+            throw new ExcecaoDadosInvalidos("Data não pode ser no passado.");
+        }
+
+        if (horarioInicio == null || horarioFim == null) {
+            throw new ExcecaoDadosInvalidos("Horário inicial e final são obrigatórios.");
+        }
+
+        // --- Novas verificações de horário de funcionamento ---
+        if (horarioInicio.isBefore(ABERTURA)) {
+            throw new ExcecaoDadosInvalidos("O espaço só abre às " + ABERTURA);
+        }
+
+        if (horarioFim.isAfter(FECHAMENTO)) {
+            throw new ExcecaoDadosInvalidos("O espaço fecha às " + FECHAMENTO);
+        }
+
+        if (!horarioFim.isAfter(horarioInicio)) {
+            throw new ExcecaoDadosInvalidos("Horário final deve ser após o inicial.");
+        }
+
+        long horas = Duration.between(horarioInicio, horarioFim).toHours();
+        if (horas < 1 || horas > 10) {
+            throw new ExcecaoDadosInvalidos("A duração deve ser entre 1 e 10 horas.");
+        }
+        
+        if (numeroConvidados <= 0 || numeroConvidados > 300) {
+            throw new ExcecaoDadosInvalidos("Capacidade: entre 1 e 300 convidados.");
+        }
+    }
     public Evento(String nome, TipoEvento tipo,
                   LocalDate data,
                   LocalTime horarioInicio,
@@ -105,8 +144,10 @@ public class Evento {
     }
 
     public double calcularOrcamento() {
-        long horas = Duration.between(this.horarioInicio, this.horarioFim).toHours();
-        return getTipo().calcularOrcamento(horas);
+        long minutos = Duration.between(this.horarioInicio, this.horarioFim).toMinutes();
+        double horasFracionadas = minutos / 60.0; 
+    
+        return getTipo().calcularOrcamento(horasFracionadas);
     }
 
     public void show() {
