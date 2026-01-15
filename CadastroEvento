@@ -1,24 +1,27 @@
 import java.time.LocalDate;
 import java.util.List;
 
-public interface CadastroEvento{
+public interface CadastroEvento {
     // Cadastro
-    public void adicionarEvento(Evento evento);
-    public boolean removerEvento(String nome, LocalDate data);
-    public void atualizarDadosEvento(Evento evento);
+    public void adicionarEvento(Evento evento) throws ExcecaoDadosInvalidos;
 
-    // Consultas
-    public Evento buscarEvento(String nome, LocalDate data);
-    public List<Evento> listarEventosPorData(LocalDate data);
+    // Consultas e Manutenção
+    public void atualizarDadosEvento(Evento evento);
+    public boolean removerEvento(Evento evento);
+    public Evento buscarEvento(Evento evento);
+    public Evento mostrarEventoPorData(LocalDate data);
+    
+    // Listagens
     public List<Evento> listarEventosPorTipo(TipoEvento tipo);
     public List<Evento> listarEventosPorCliente(Cliente cliente);
     public List<Evento> listarEventos();
+    
+    // Financeiro
     public double calcularTotalMensal(int mes, int ano);
     public double calcularPagamentoPorCliente(Cliente cliente);
 
-
-    // Verificações
-    public boolean eventoExiste(String nome, LocalDate data);   // verificar se o evento já foi cadastrado
-
+    // Verificações de Regra de Negócio
+    public boolean eventoExiste(String nome, LocalDate data);
+    public boolean eventoExiste(Evento evento);
     public int totalEventos();
 }
