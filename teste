@@ -1,0 +1,45 @@
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+public class teste {
+
+    public static void main(String[] args) {
+
+        ListaEventos lista = new ListaEventos();
+
+        try {
+            Evento e1 = new Evento(
+                    "Casamento",
+                    TipoEvento.CASAMENTO,
+                    LocalDate.of(2026, 6, 10),
+                    LocalTime.of(14, 0),
+                    LocalTime.of(18, 0),
+                    null,
+                    "Cerimônia",
+                    100
+            );
+
+            lista.adicionarEvento(e1); //exceção aqui
+
+            Evento e2 = new Evento(
+                    "Aniversário",
+                    TipoEvento.ANIVERSARIO,
+                    LocalDate.of(2026, 6, 10), // mesma data
+                    LocalTime.of(20, 0),
+                    LocalTime.of(23, 0),
+                    null,
+                    "Festa",
+                    50
+            );
+
+
+            lista.adicionarEvento(e2); //exceção aqui
+
+            e1.validadorBase();
+            e2.validadorBase();
+
+        } catch (ExcecaoDadosInvalidos e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+}
